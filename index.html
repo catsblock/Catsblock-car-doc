@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CatsBlock Car Doc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            black: '#000000',
+                            darkGray: '#0B0612',
+                            lightGray: '#120A1C',
+                            purple: '#8B5CF6',
+                            lightPurple: '#A78BFA',
+                            textMuted: '#9CA3AF'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-brand-black text-white min-h-screen font-sans flex flex-col selection:bg-brand-purple selection:text-white">
+
+    <main class="flex-grow max-w-4xl w-full mx-auto px-5 py-10 md:py-20 flex flex-col justify-center">
+        <header class="text-center mb-12 md:mb-16">
+            <div class="inline-flex items-center justify-center p-4 bg-brand-darkGray border border-brand-purple/30 rounded-full mb-6 shadow-[0_0_20px_rgba(139,92,246,0.15)]">
+                <svg class="h-12 w-12 text-brand-purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="2" x2="12" y2="22" /><line x1="2" y1="12" x2="22" y2="12" /><circle cx="12" cy="12" r="3" fill="currentColor" fill-opacity="0.2" />
+                </svg>
+            </div>
+            <h1 class="text-3xl md:text-5xl font-black tracking-tight bg-gradient-to-b from-white to-brand-lightPurple bg-clip-text text-transparent">CatsBlock Car Doc</h1>
+        </header>
+
+        <section id="homeView" class="space-y-10 fade-in">
+            <div class="relative max-w-xl mx-auto">
+                <input type="text" id="searchInput" placeholder="Pesquisar documento, termo ou guia..." 
+                    class="w-full pl-12 pr-4 py-4 bg-brand-darkGray border border-brand-purple/20 rounded-2xl text-white focus:outline-none focus:ring-1 focus:ring-brand-purple transition-all shadow-[0_4px_30px_rgba(0,0,0,0.8)]"
+                    oninput="handleSearch(this.value)">
+                <div id="suggestionsBox" class="hidden absolute left-0 right-0 mt-2 bg-brand-lightGray border border-brand-purple/30 rounded-2xl shadow-xl overflow-hidden z-20 backdrop-blur-md"></div>
+            </div>
+            <div id="documentsList" class="grid gap-4 sm:grid-cols-1 md:grid-cols-2"></div>
+        </section>
+
+        <section id="docView" class="hidden max-w-2xl w-full mx-auto bg-brand-darkGray border border-brand-purple/20 p-6 md:p-10 rounded-3xl fade-in">
+            <button onclick="showHome()" class="text-brand-lightPurple hover:text-white uppercase text-xs font-bold mb-6 flex items-center gap-2">&larr; Voltar</button>
+            <div id="docContent" class="space-y-6"></div>
+            <div id="feedbackSection" class="mt-12 pt-8 border-t border-brand-purple/20 text-center">
+                <p class="mb-4 text-brand-textMuted">Este documento foi útil?</p>
+                <div class="flex justify-center gap-6">
+                    <button onclick="submitFeedback()" class="flex items-center gap-2 hover:text-brand-purple transition-colors">
+                        👍 <span>Sim</span>
+                    </button>
+                    <button onclick="submitFeedback()" class="flex items-center gap-2 hover:text-brand-purple transition-colors">
+                        👎 <span>Não</span>
+                    </button>
+                </div>
+                <p id="feedbackResponse" class="mt-4 text-sm text-brand-purple hidden italic">Obrigado pela sua resposta.</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const documents = [
+            { id: "localizacao", title: "Localização", preview: "Como tratamos os seus dados de geolocalização.", description: "A privacidade é um dos nossos pilares fundamentais. **Ao aceitar a permissão de localização**, os seus dados não são gravados nos nossos servidores principais. O sistema apenas processa as coordenadas em tempo real no seu aparelho para que possa visualizar a sua posição no mapa.\n\nContudo, quando decide enviar um reporte para ajudar a comunidade, a localização exata desse incidente é transmitida. Estes dados são armazenados de forma encriptada na infraestrutura **Firebase da Google**, garantindo que apenas a informação necessária para o funcionamento do alerta seja preservada com elevados níveis de segurança." },
+            { id: "como-alertar", title: "Como Alertar um Evento", preview: "Guia detalhado para reportar ocorrências e ajudar condutores.", gif: "https://raw.githubusercontent.com/catsblock/catsblock-car-doc/main/TutorialHowToReport.gif", description: "Alertar outros motoristas sobre perigos ou eventos na estrada é um ato de responsabilidade. Para proceder, siga este fluxo:\n\n1. Aceda ao menu **Reportar** na interface principal.\n2. Escolha a **categoria de evento** que melhor descreve a situação (acidentes, trânsito ou obras).\n3. Selecione a **subcategoria** específica para maior precisão.\n4. Clique no botão de confirmação para emitir o alerta.\n\nUma vez publicado, o sistema notificará outros condutores nas proximidades, tornando a via mais segura para todos." },
+            { id: "radar", title: "Como Alertar um Radar", preview: "Comunicar a existência de radares de velocidade ou semáforo.", description: "Se encontrar um dispositivo de controlo de velocidade ou semáforo que ainda não esteja mapeado, a sua colaboração é vital. Para submeter esta informação, siga os procedimentos abaixo:\n\n• Dirija-se ao perfil oficial de TikTok **S4ttings**.\n• Inicie uma mensagem privada (DM).\n• Envie a **localização exata** (preferencialmente link de mapas) e especifique se é um **radar de semáforo** ou de **velocidade**.\n\nA nossa equipa processará o seu envio manualmente para validar a precisão dos dados antes da sua integração oficial no sistema." },
+            { id: "termos", title: "Termos de Serviço", preview: "Regras de conduta e diretrizes anti-abuso na plataforma.", description: "A utilização do CatsBlock Car Doc requer o cumprimento rigoroso de um código de conduta básico. **Não é permitida a criação de reportes falsos** sob qualquer circunstância; o abuso desta função resulta na inclusão imediata da sua conta Google na nossa lista negra, impedindo o acesso futuro aos nossos serviços.\n\nAdicionalmente, qualquer tentativa de **spam** ou utilização de ferramentas externas para manipular dados (**exploits**) será tratada com severidade, podendo resultar na suspensão permanente do utilizador. O nosso objetivo é manter um ecossistema fiável e transparente." },
+            { id: "privacidade", title: "Política de Privacidade", preview: "Compromisso com a proteção de dados e infraestrutura.", description: "Levamos a sua segurança a sério. O CatsBlock Car **não armazena informações pessoais** que o possam identificar diretamente. Apenas os dados estritamente necessários para os relatórios de incidentes e a respetiva localização geográfica são guardados.\n\nTodo o armazenamento é executado através dos serviços de cloud **Firebase da Google**, uma infraestrutura de referência mundial que utiliza encriptação avançada para proteger todos os nossos servidores contra acessos não autorizados. Pode utilizar a nossa plataforma com total serenidade, sabendo que os seus dados de navegação são mantidos em ambiente seguro." }
+        ];
+
+        function parseMarkdown(text) { return text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>'); }
+
+        function openDocument(docId) {
+            const doc = documents.find(d => d.id === docId);
+            const content = document.getElementById('docContent');
+            const gif = doc.gif ? `<img src="${doc.gif}" class="w-full rounded-2xl mb-6 shadow-2xl">` : '';
+            content.innerHTML = `<h2 class="text-3xl font-black">${doc.title}</h2><div class="h-px bg-brand-purple/30 my-4"></div>${gif}<p class="text-brand-textMuted leading-relaxed">${parseMarkdown(doc.description).replace(/\n/g, '<br>')}</p>`;
+            document.getElementById('feedbackResponse').classList.add('hidden');
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('docView').classList.remove('hidden');
+        }
+
+        function showHome() {
+            document.getElementById('docView').classList.add('hidden');
+            document.getElementById('homeView').classList.remove('hidden');
+        }
+
+        function submitFeedback() {
+            document.getElementById('feedbackResponse').classList.remove('hidden');
+        }
+
+        function handleSearch(query) {
+            const box = document.getElementById('suggestionsBox');
+            if (!query) { box.classList.add('hidden'); return; }
+            const matches = documents.filter(d => d.title.toLowerCase().includes(query.toLowerCase()));
+            box.innerHTML = matches.map(m => `<div class="px-5 py-3 cursor-pointer hover:bg-brand-purple/20 border-b border-brand-purple/10" onclick="openDocument('${m.id}')">${m.title}</div>`).join('');
+            box.classList.toggle('hidden', matches.length === 0);
+        }
+
+        window.onload = () => {
+            const list = document.getElementById('documentsList');
+            list.innerHTML = documents.map(d => `<div class="bg-brand-darkGray p-6 rounded-2xl cursor-pointer hover:border-brand-purple border border-transparent transition-all" onclick="openDocument('${d.id}')"><h3 class="font-bold mb-2">${d.title}</h3><p class="text-xs text-brand-textMuted">${d.preview}</p></div>`).join('');
+        }
+    </script>
+</body>
+</html>
